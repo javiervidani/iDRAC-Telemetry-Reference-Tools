@@ -1,0 +1,283 @@
+================================================================================
+OFFLINE DOCKER DEPLOYMENT - SCRIPTS CREATED
+================================================================================
+
+LOCATION: /home/dev/iDRAC-Telemetry-Reference-Tools-main/
+
+================================================================================
+EXECUTABLE SCRIPTS (in docker-compose-files/ directory)
+================================================================================
+
+1. save-docker-images.sh
+   Purpose: Save all 7 Docker images to .tar.gz files
+   Usage:   ./docker-compose-files/save-docker-images.sh ./docker-images-backup
+   Output:  7 compressed image files (~1.5-2GB total)
+   Run on:  Online/development server
+   
+   Command: ./save-docker-images.sh [OUTPUT_DIR]
+   
+   Steps:
+   - Builds custom images if not present
+   - Saves: mysql, activemq, victoria-metrics, redfishread, configui, 
+            victoriapump, dbdiscauth
+   - Creates .tar.gz files for easy transfer
+
+---
+
+2. load-docker-images.sh
+   Purpose: Load Docker images from .tar.gz files
+   Usage:   ./docker-compose-files/load-docker-images.sh /path/to/backup
+   Run on:  Offline server
+   
+   Command: ./load-docker-images.sh INPUT_DIR
+   
+   Steps:
+   - Loads all .tar.gz files
+   - Verifies images are loaded
+   - Lists loaded images
+
+---
+
+3. run-all.sh
+   Purpose: Start ALL services with Victoria Metrics (full stack)
+   Usage:   ./docker-compose-files/run-all.sh
+   Run on:  Offline server (after loading images)
+   
+   Features:
+   - Starts core services (activemq, mysql, configui, etc.)
+   - Starts Victoria Metrics database
+   - Starts Victoria Metrics pump
+   - Auto-creates config.ini if missing
+   - Auto-creates data directories
+   - Mounts config and data volumes
+   
+   No arguments needed - ready to go!
+
+---
+
+4. run-offline.sh
+   Purpose: Start services with CUSTOM configuration
+   Usage:   ./docker-compose-files/run-offline.sh [OPTIONS]
+   Run on:  Offline server (advanced users)
+   
+   Options:
+   --victoria-db         Start Victoria Metrics database
+   --victoria-pump       Start Victoria Metrics pump
+   --prometheus-pump     Start Prometheus pump
+   --influx-pump         Start InfluxDB pump
+   --splunk-pump         Start Splunk pump
+   --kafka-pump          Start Kafka pump
+   --elk-pump            Start ELK pump
+   --timescale-pump      Start TimescaleDB pump
+   --grafana             Start Grafana
+   
+   Example:
+   ./run-offline.sh --victoria-db --victoria-pump --prometheus-pump
+   
+   Environment variables:
+   CONFIG_DIR  - Config directory (default: ../config-files)
+   DATA_DIR    - Data directory (default: ./data)
+
+---
+
+5. deploy-offline.sh
+   Purpose: MASTER orchestration script (guided deployment)
+   Usage:   ./docker-compose-files/deploy-offline.sh [COMMAND]
+   Run on:  Either online or offline server
+   
+   Commands:
+   full                  - Interactive full deployment wizard
+   save [DIR]            - Save images
+   load [DIR]            - Load images
+   configure             - Create/edit config
+   start                 - Start services
+   status                - Show service status
+   stop                  - Stop services
+   logs [SERVICE]        - View logs
+   help                  - Show help
+   
+   Examples:
+   ./deploy-offline.sh full              # Guided interactive
+   ./deploy-offline.sh save ./backup      # Save images
+   ./deploy-offline.sh load ./backup      # Load images
+   ./deploy-offline.sh status             # Check status
+
+================================================================================
+CONFIGURATION FILES
+================================================================================
+
+1. docker-compose-files/config.ini.template
+   - Template for iDRAC server configuration
+   - Copy to: config-files/config.ini
+   - Edit with your iDRAC server IPs and credentials
+
+2. docker-compose-files/OFFLINE-DEPLOYMENT.md
+   - Comprehensive deployment guide
+   - Troubleshooting tips
+   - Performance notes
+   - Backup/restore procedures
+
+================================================================================
+DOCUMENTATION FILES
+================================================================================
+
+1. OFFLINE-DEPLOYMENT-SUMMARY.md (project root)
+   - Overview of all scripts
+   - Quick start workflow
+   - Images being saved
+   - Configuration format
+   - Directory structure
+   - Commands reference
+
+2. OFFLINE-DEPLOYMENT-CHECKLIST.md (project root)
+   - Step-by-step checklist
+   - Prerequisites for each step
+   - Expected outputs
+   - Verification commands
+   - Troubleshooting guide
+   - Performance monitoring
+
+3. QUICK-START.sh (project root)
+   - Quick reference guide
+   - Common commands
+   - Web interface URLs
+   - Run with: ./QUICK-START.sh
+
+================================================================================
+TYPICAL WORKFLOW
+================================================================================
+
+STEP 1: ON ONLINE SERVER (with Docker images built)
+   cd docker-compose-files
+   ./save-docker-images.sh ./docker-images-backup
+   
+   Output: docker-images-backup/ directory with 7 .tar.gz files
+   Transfer: Copy to offline server via USB/network
+
+STEP 2: ON OFFLINE SERVER (receive docker-images-backup/)
+   cd docker-compose-files
+   ./load-docker-images.sh /path/to/docker-images-backup
+   
+   Verify: docker images | grep -E "idrac-telemetry|mysql|activemq|victoria"
+
+STEP 3: CONFIGURE IDRAC SERVERS
+   mkdir -p config-files
+   cp docker-compose-files/config.ini.template config-files/config.ini
+   nano config-files/config.ini  # Edit with your iDRAC servers
+   
+   Format:
+   [Services]
+   Types=iDRAC,iDRAC,iDRAC
+   IPs=192.168.1.100,192.168.1.101,192.168.1.102
+   
+   [192.168.1.100]
+   username=admin
+   password=password123
+   ...
+
+STEP 4: START SERVICES
+   ./docker-compose-files/run-all.sh
+   
+   Services will start automatically with proper volumes
+
+STEP 5: VERIFY AND ACCESS
+   docker-compose -f docker-compose-files/docker-compose.yml ps
+   
+   Web Interfaces:
+   - ConfigUI:        http://localhost:8080
+   - ActiveMQ:        http://localhost:8161
+   - Victoria Metrics: http://localhost:8428
+
+================================================================================
+DOCKER IMAGES BEING SAVED (7 total)
+================================================================================
+
+External Images (Pre-built):
+1. mysql:latest
+2. rmohr/activemq:latest
+3. victoriametrics/victoria-metrics:v1.121.0
+
+Custom Built Images:
+4. idrac-telemetry-reference-tools/redfishread:latest
+5. idrac-telemetry-reference-tools/configui:latest
+6. idrac-telemetry-reference-tools/victoriapump:latest
+7. idrac-telemetry-reference-tools/dbdiscauth:latest
+
+Total size: ~1.5-2GB (compressed)
+
+================================================================================
+QUICK COMMAND REFERENCE
+================================================================================
+
+# Check what script does before running
+./docker-compose-files/deploy-offline.sh help
+
+# Interactive guided deployment
+./docker-compose-files/deploy-offline.sh full
+
+# Save images on online server
+./docker-compose-files/save-docker-images.sh ./images-backup
+
+# Load images on offline server
+./docker-compose-files/load-docker-images.sh ./images-backup
+
+# Run all services
+./docker-compose-files/run-all.sh
+
+# View service status
+docker-compose -f docker-compose-files/docker-compose.yml ps
+
+# View logs
+docker-compose -f docker-compose-files/docker-compose.yml logs -f
+
+# Stop services
+docker-compose -f docker-compose-files/docker-compose.yml down
+
+# View quick start guide
+./QUICK-START.sh
+
+================================================================================
+VOLUME MOUNTING (Automatic)
+================================================================================
+
+The scripts automatically mount these volumes:
+
+Host Location              Container Location        Purpose
+config-files/config.ini -> /etc/telemetry/config.ini  iDRAC server config
+config-files/.certs     -> /extrabin/certs             SSL certificates
+data/mysqldb            -> /var/lib/mysql              MySQL data
+data/victoria-metrics   -> /victoria-metrics-data      Metrics data
+
+Data persists across container restarts!
+
+================================================================================
+SUPPORT & DOCUMENTATION
+================================================================================
+
+For detailed information, read:
+- OFFLINE-DEPLOYMENT-SUMMARY.md    - Overview and quick start
+- OFFLINE-DEPLOYMENT-CHECKLIST.md   - Step-by-step checklist
+- docker-compose-files/OFFLINE-DEPLOYMENT.md - Comprehensive guide
+
+For quick reference:
+- Run: ./QUICK-START.sh
+
+For help with scripts:
+- ./docker-compose-files/deploy-offline.sh help
+- ./docker-compose-files/run-offline.sh --help
+
+================================================================================
+KEY POINTS
+================================================================================
+
+✓ All scripts are executable and ready to use
+✓ Configuration is stored in config-files/config.ini
+✓ Data persists in docker-compose-files/data/ directory
+✓ Web interfaces accessible on localhost (ports 8080, 8161, 8428)
+✓ Automatic volume mounting for config and data
+✓ Complete offline capability after images are loaded
+✓ Works with any number of iDRAC servers
+✓ Comprehensive logging for troubleshooting
+✓ Backup and restore procedures included
+
+================================================================================

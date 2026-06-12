@@ -1,0 +1,59 @@
+# iDRAC Telemetry Configuration File
+#
+# This file configures which iDRAC servers the telemetry collector will monitor
+#
+
+[General]
+# ActiveMQ Message Bus Configuration
+StompHost=activemq
+StompPort=61613
+
+[Services]
+# List of iDRAC server types
+# One type per server (almost always "iDRAC" for Dell servers)
+# Example for 3 servers: Types=iDRAC,iDRAC,iDRAC
+Types=iDRAC
+
+# List of iDRAC server IP addresses or hostnames
+# Must match the number of Types entries
+# Examples:
+#   IPs=192.168.1.100
+#   IPs=192.168.1.100,192.168.1.101,192.168.1.102
+#   IPs=idrac1.example.com,idrac2.example.com
+IPs=192.168.1.100
+
+#############################################################################
+# iDRAC Server Credentials
+#############################################################################
+# For each iDRAC server, create a section with its IP address and credentials
+#
+# Example for 192.168.1.100:
+#   [192.168.1.100]
+#   username=admin
+#   password=yourpassword
+#
+# Note: Credentials are stored in plaintext. Secure this file appropriately!
+#       For production use, consider using environment variables or secrets management.
+
+[192.168.1.100]
+username=admin
+password=password123
+
+# Add more servers below (uncomment and customize):
+#
+# [192.168.1.101]
+# username=admin
+# password=password456
+#
+# [192.168.1.102]
+# username=admin
+# password=password789
+#
+# [idrac1.example.com]
+# username=admin
+# password=example_password
+#
+# [idrac2.example.com]
+# username=admin
+# password=example_password2
+

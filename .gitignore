@@ -9,3 +9,7 @@ vendor/
 cmd/frontend/node_modules
 
 __pycache__
+off-line-zip/
+.gitignore
+output-dir/
+offline-images/

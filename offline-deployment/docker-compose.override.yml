@@ -1,0 +1,6 @@
+services:
+  grafana:
+    environment:
+      GF_INSTALL_PLUGINS: ""
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin123
